@@ -1,5 +1,12 @@
 # example-webapp
 
+- [introduction](#introduction)
+- [dev keynotes](#dev-keynotes)
+- [quickstart](#quickstart)
+- [integration tests](#integration-tests)
+- [frontend api](#frontend-api)
+- [how this project was built](#how-this-project-was-built)
+
 ## introduction
 
 Purpose of this project is to have a template for quickstarting a web application with following features:
