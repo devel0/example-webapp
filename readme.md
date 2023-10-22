@@ -1,0 +1,256 @@
+# example-webapp
+
+## introduction
+
+Purpose of this project is to have a template for quickstarting a web application with following features:
+
+- asp net core backend
+  - db provider pluggable
+  - jwt bearer
+    - http only same site authentication cookies
+    - access token renewed on server side when jwt auth fail using refresh token
+    - lockout user can't renew access token
+  - swagger api endpoint
+
+- react typescript frontend
+  - material ui v5
+  - api generated using openapitools typescript-axios
+
+## quickstart
+
+```sh
+git clone https://github.com/devel0/example-webapp
+cd example-webapp
+
+```
+
+## how this project was built
+
+```sh
+#
+# replace follow envs with yours ( space before avoid store in history )
+# create a ~/security/local-mssql-server file within a 700 ~/security folder
+#
+# in production set Encrypt=true for mssql db conn string
+
+ SEED_ADMIN_EMAIL=admin@admin.com
+ SEED_ADMIN_PASS=Supersecret0!
+
+# choose the provider between
+
+ # 1) SqlServer db provider
+ DB_PROVIDER="SqlServer"
+ DB_CONN_STRING="Server=localhost;Database=exampleWebApp;Encrypt=false;MultipleActiveResultSets=true;User ID=sa;Password=$(cat ~/security/local-mssql-server)"
+
+ # 2) SqlServer db provider
+ DB_PROVIDER="Postgres"
+ DB_CONN_STRING="Host=localhost; Database=exampleWebApp; Username=postgres; Password=$(cat ~/security/local-psql)"
+
+ # 3) Sqlite db provider
+ DB_PROVIDER="Sqlite"
+ DB_CONN_STRING="Data Source=$(echo $HOME/sample.db)"
+
+# setup REF source path
+mkdir ref-source
+git clone https://github.com/devel0/example-webapp
+cd ..
+REF=$(pwd)/ref-source/example-webapp
+
+mkdir example-webapp
+cd example-webapp
+
+# begin
+
+if [ "$SEED_ADMIN_EMAIL" == "" ] || \
+  [ "$SEED_ADMIN_PASS" == "" ] || \
+  [ "$DB_CONN_STRING" == "" ] || \
+  [ "$REF" == "" ]; then
+
+echo "missing environments"
+
+else
+
+##########################################################################
+# backend
+##########################################################################
+
+mkdir backend
+cd backend
+dotnet new gitignore
+
+#-------------------------------------------------------------------------
+# backend-data
+#-------------------------------------------------------------------------
+
+mkdir backend-data
+cd backend-data
+
+dotnet new classlib -n context
+cd context
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 7.0.12
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 7.0.12
+rm -f Class1.cs
+cp -r "$REF"/backend/backend-data/context/Context .
+cp -r "$REF"/backend/backend-data/context/Types .
+cp "$REF"/backend/backend-data/context/Usings.cs .
+cd .. # exit context
+
+dotnet new classlib -n migrations-mssql
+cd migrations-mssql
+dotnet add package Microsoft.EntityFrameworkCore.Relational --version 7.0.12
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 7.0.12
+dotnet add reference ../context
+rm -f Class1.cs
+cd .. # exit migrations-mssql
+
+dotnet new classlib -n migrations-psql
+cd migrations-psql
+dotnet add package Microsoft.EntityFrameworkCore.Relational --version 7.0.12
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 7.0.11
+dotnet add reference ../context
+rm -f Class1.cs
+cd .. # exit migrations-psql
+
+dotnet new classlib -n migrations-sqlite
+cd migrations-sqlite
+dotnet add package Microsoft.EntityFrameworkCore.Relational --version 7.0.12
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 7.0.12
+dotnet add reference ../context
+rm -f Class1.cs
+cd .. # exit migrations-sqlite
+
+cd .. # exit backend-data
+
+#-------------------------------------------------------------------------
+# backend-api
+#-------------------------------------------------------------------------
+
+dotnet new webapi -n backend-api
+cd backend-api
+
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 7.0.12
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 7.0.12
+dotnet add reference ../backend-data/context
+dotnet add reference ../backend-data/migrations-mssql
+dotnet add reference ../backend-data/migrations-psql
+dotnet add reference ../backend-data/migrations-sqlite
+
+rm -f Controllers/WeatherForecastController.cs
+rm -f WeatherForecast.cs
+
+dotnet tool install -g dotnet-ef
+dotnet tool install -g dotnet-script
+dotnet user-secrets init
+
+cp "$REF"/backend/backend-api/gen-jwt.sh .
+
+dotnet user-secrets set "JwtSettings:Key" "$(./gen-jwt.sh)"
+dotnet user-secrets set "SeedUsers:Admin:Email" "$SEED_ADMIN_EMAIL"
+dotnet user-secrets set "SeedUsers:Admin:Password" "$SEED_ADMIN_PASS"
+dotnet user-secrets set "Provider" "$DB_PROVIDER"
+dotnet user-secrets set "DbConnString" "$DB_CONN_STRING"
+
+\cp "$REF"/backend/backend-api/{appsettings.json,Program.cs,Usings.cs} .
+
+dotnet add package Microsoft.IdentityModel.Tokens --version 7.0.3
+dotnet add package Serilog.AspNetCore --version 7.0.0
+dotnet add package Serilog.Sinks.Console --version 4.1.0
+dotnet add package System.IdentityModel.Tokens.Jwt --version 7.0.3
+dotnet add package Unchase.Swashbuckle.AspNetCore.Extensions --version 2.7.1
+
+cp -r "$REF"/backend/backend-api/{Constants,Controllers,DTOs,Exceptions,Extensions,Filters,Services,Toolkit,Types,misc} .
+
+# adds copy to outputdirectory of misc/SwaggerDark.css
+sed -i -e '/<\/Project>/r misc/csproj-Project-patch' -e "/<\/Project>/d" backend-api.csproj 
+sed -i -e '/<\/PropertyGroup>/r misc/csproj-PropertyGroup-patch' -e "/<\/PropertyGroup>/d" backend-api.csproj 
+
+# override config from env ( replace : with _ for nested types )
+
+Provider=SqlServer \
+  dotnet ef migrations add init --project ../backend-data/migrations-mssql -- --provider SqlServer
+
+Provider=Postgres \
+  dotnet ef migrations add init --project ../backend-data/migrations-psql -- --provider Postgres
+
+Provider=Sqlite \
+  dotnet ef migrations add init --project ../backend-data/migrations-sqlite -- --provider Sqlite
+
+# update db
+
+if [ "$DB_PROVIDER" == "SqlServer" ]; then
+  DB_MIGRATIONS_PATH=../backend-data/migrations-mssql
+
+else if [ "$DB_PROVIDER" == "Postgres" ]; then
+  DB_MIGRATIONS_PATH=../backend-data/migrations-psql
+
+else if [ "$DB_PROVIDER" == "Sqlite" ]; then
+  DB_MIGRATIONS_PATH=../backend-data/migrations-sqlite
+
+fi
+
+if [ "$DB_MIGRATIONS_PATH" != "" ]; then
+
+  Provider=$DB_PROVIDER \
+    dotnet ef database update --project $DB_MIGRATIONS_PATH -- --provider $DB_PROVIDER
+
+fi
+
+# dotnet run --urls http://localhost:5000
+
+cd .. # exit backend-api
+
+#-------------------------------------------------------------------------
+# tests
+#-------------------------------------------------------------------------
+
+mkdir backend-tests
+cd backend-tests
+
+dotnet new xunit -n integration-tests
+cd integration-tests
+
+dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 7.0.12
+dotnet add package coverlet.msbuild --version 3.2.0
+dotnet add reference ../../backend-api
+
+rm -f UnitTest1.cs
+
+\cp -f "$REF"/backend/backend-tests/integration-tests/*.cs .
+
+cd .. # exit integration-tests
+
+cd .. # exit backend-tests
+
+cd .. # exit backend
+
+##########################################################################
+# frontend
+##########################################################################
+
+npx create-react-app frontend --template typescript -y
+cd frontend
+
+rm -f README.md
+
+yarn add \
+  @mui/material@^5.14.14 \
+  @mui/x-data-grid@^6.16.2 \
+  @mui/icons-material@^5.14.14 \
+  @emotion/react@^11.11.1 \
+  @emotion/styled@^11.11.0 \
+  @fontsource/roboto \
+  axios@^1.5.1 \
+  react-redux@^8.1.3 \
+  react-router@^6.17.0 \
+  @reduxjs/toolkit@^1.9.7 \
+  history@^5.3.0 \
+  redux-first-history@^5.1.1
+
+\rm -r src
+cp -r "$REF"/frontend/{src} .
+
+cd .. # exit frontend
+
+fi
+
+```

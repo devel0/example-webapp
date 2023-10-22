@@ -1,0 +1,6 @@
+  <ItemGroup>
+    <None Update="misc/SwaggerDark.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
