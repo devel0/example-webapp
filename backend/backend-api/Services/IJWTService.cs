@@ -7,13 +7,21 @@ public interface IJWTService
 {
 
     /// <summary>
-    /// Duration of generated access token.<br/>
-    /// In order to be able block a user the access token duration should a small interval, from 30min to max 2hr.<br/>
+    /// Duration of generated access token.<br/>    
+    /// Keep as short as possible. (default: 5min)
+    /// Small duration on access token makes effective the activation of the lockout of the user
+    /// or the invalidation of refresh tokens following a password reset (pwd reset not yet implemented).
     /// </summary>    
     TimeSpan AccessTokenLifetime { get; }
 
     /// <summary>
-    /// Duration of refresh token could up to 90 days.<br/>    
+    /// Duration of refresh token.<br/>      
+    /// Keep as short as possible. (default: 20min)<br/>
+    /// When the access token expires and refresh token is still valid then a new refresh token is generated
+    /// with a renewd refrsh token duration from that start time; this mean the session can continue
+    /// without further authentication even if the refresh token have a small duration.<br/>
+    /// Small duration on refresh token reduce risk of crfs attack because when refresh token expires
+    /// the only way to authorize a new request is to authenticate again through login.<br/>    
     /// </summary>    
     TimeSpan RefreshTokenLifetime { get; }
 

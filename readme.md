@@ -114,15 +114,12 @@ yarn start
 # use credentials as from the envs SEED_ADMIN_EMAIL and SEED_ADMIN_PASS
 # - click user management
 # - open inspector F12 and see the network tab
-# - hit F5 ( see notes below )
+# - hit F5
+# - after 5 min access token renewd
+# - after 20 min from last refresh token rotation login required again
 #
-# note that access token and refresh token set in backend appsettings.json
-# have values of 10 seconds for the access token and 20 seconds for the refresh token
-# this is only for development test
-#
-# you have to press F5 just after loaded user management
-# in the 10 seconds the access token stil the same, after the access token will renewd automatically
-# and refresh token rotated so that you could continue indefinitely
+# modify access token and refresh token duration in appsettings.json
+# keep them as short as possible
 ```
 
 ## integration tests
