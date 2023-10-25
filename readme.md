@@ -2,6 +2,7 @@
 
 - [introduction](#introduction)
 - [dev keynotes](#dev-keynotes)
+- [curl automated with cookies](#curl-automated-with-cookies)
 - [quickstart](#quickstart)
 - [integration tests](#integration-tests)
 - [frontend api](#frontend-api)
@@ -46,6 +47,39 @@ Purpose of this project is to have a template for quickstarting a web applicatio
 [7]: https://github.com/devel0/example-webapp/blob/4461aa2cca5ce0f83f93194b32c8bd63bd694736/frontend/src/components/admin/UserManagement.tsx#L40
 [8]: https://github.com/devel0/example-webapp/blob/4461aa2cca5ce0f83f93194b32c8bd63bd694736/backend/backend-api/Constants/Constants.Config.cs#L15-L24
 [9]: https://github.com/devel0/example-webapp/blob/4461aa2cca5ce0f83f93194b32c8bd63bd694736/backend/backend-api/Extensions/Configuration.cs#L21-L32
+
+## curl automated with cookies
+
+```sh
+curl \
+  -s \
+  -c cookies -b cookies \
+  -X 'POST' \
+  -H 'accept: text/plain' \
+  -H 'Content-Type: application/json' \
+  -d '{ "userName": "admin", "email": "string", "password": "Supersecret0!" }' \
+  'http://localhost:5000/api/Auth/Login' > /dev/null \
+&& \
+curl \
+  -s \
+  -c cookies -b cookies \
+  -X 'GET' \
+  -H 'accept: text/plain' \
+  'http://localhost:5000/api/Auth/CurrentUser' | jq
+```
+
+results:
+
+```json
+{
+  "status": 0,
+  "userName": "admin",
+  "email": "admin@admin.com",
+  "roles": [
+    "admin"
+  ]
+}
+```
 
 ## quickstart
 
