@@ -4,4 +4,4 @@ exdir=$(dirname $(readlink -f "$0"))
 
 cd "$exdir"
 
-dotnet run --urls "http://localhost:5000"
+dotnet run --environment Development --urls "http://localhost:5000"
