@@ -83,7 +83,7 @@ results:
 
 ## quickstart
 
-for db provider, conn string about other provides see [here](https://github.com/devel0/example-webapp/blob/9efc034d50c1bf13d1d8b5db327c9166df2f2ca7/readme.md#L168)
+for db provider, conn string about other provides see [here](#how-this-project-was-built)
 
 ```sh
 git clone https://github.com/devel0/example-webapp
