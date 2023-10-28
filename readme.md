@@ -85,16 +85,23 @@ results:
 
 for db provider, conn string about other provides see [here](#how-this-project-was-built)
 
+note for windows users:
+
+- install [git-scm](https://git-scm.com/downloads) then enter bash from powershell with `& 'C:\Program Files\Git\bin\bash.exe'` cmd
+
 ```sh
 git clone https://github.com/devel0/example-webapp
-cd example-webapp/backend
+cd example-webapp/backend/backend-api
 
 SEED_ADMIN_EMAIL=admin@admin.com
 SEED_ADMIN_PASS=Supersecret0!
 DB_PROVIDER="Sqlite"
-DB_CONN_STRING="Data Source=$(pwd)/sample.db"
 
-cd backend-api
+if [ "$OS" == "Windows_NT" ]; then
+  DB_CONN_STRING="Data Source=$(cygpath -w "$(pwd)")\\sample.db"
+else
+  DB_CONN_STRING="Data Source=$(pwd)/sample.db"
+fi
 
 dotnet tool restore
 
