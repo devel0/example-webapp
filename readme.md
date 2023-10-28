@@ -83,11 +83,8 @@ results:
 
 ## quickstart
 
-for db provider, conn string about other provides see [here](#how-this-project-was-built)
-
-note for windows users:
-
-- install [git-scm](https://git-scm.com/downloads) then enter bash from powershell with `& 'C:\Program Files\Git\bin\bash.exe'` cmd
+- for db provider, conn string about other provides see [here](#how-this-project-was-built)
+- for windows users : because following is a bash script, install [git-scm](https://git-scm.com/downloads) then enter bash from powershell with `& 'C:\Program Files\Git\bin\bash.exe'`
 
 ```sh
 git clone https://github.com/devel0/example-webapp
