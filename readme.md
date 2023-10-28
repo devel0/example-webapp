@@ -93,9 +93,10 @@ DB_PROVIDER="Sqlite"
 DB_CONN_STRING="Data Source=$(pwd)/sample.db"
 
 cd backend-api
-dotnet tool install -g dotnet-ef
-dotnet tool install -g dotnet-script
 
+dotnet tool restore
+
+dotnet user-secrets init
 dotnet user-secrets set "JwtSettings:Key" "$(./gen-jwt.sh)"
 dotnet user-secrets set "SeedUsers:Admin:Email" "$SEED_ADMIN_EMAIL"
 dotnet user-secrets set "SeedUsers:Admin:Password" "$SEED_ADMIN_PASS"
@@ -264,8 +265,11 @@ dotnet add reference ../backend-data/migrations-sqlite
 rm -f Controllers/WeatherForecastController.cs
 rm -f WeatherForecast.cs
 
-dotnet tool install -g dotnet-ef
-dotnet tool install -g dotnet-script
+# this create .config/dotnet-tools.json
+dotnet new tool-manifest
+dotnet tool install dotnet-ef
+dotnet tool install dotnet-script
+
 dotnet user-secrets init
 
 cp "$REF"/backend/backend-api/gen-jwt.sh .

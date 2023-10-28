@@ -4,8 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>backend_api</RootNamespace>
-    <UserSecretsId>1e574f77-8547-4672-b8fc-63c6c9667d02</UserSecretsId>
+    <RootNamespace>backend_api</RootNamespace>    
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
