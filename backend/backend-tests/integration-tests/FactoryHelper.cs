@@ -2,8 +2,7 @@ namespace ExampleWebApp.Backend.Tests.Integration;
 
 public class FactoryHelper
 {
-    public WebApplicationFactory<Program> Program { get; }
-    public HttpClient Client { get; }
+    public WebApplicationFactory<Program> Program { get; }    
 
     public HttpClient NewClient() => Program.CreateClient();
 
@@ -22,7 +21,7 @@ public class FactoryHelper
 
         Program = factory
             .WithWebHostBuilder(builder =>
-            {                
+            {
                 builder.ConfigureTestServices(services =>
                 {
 
@@ -34,7 +33,5 @@ public class FactoryHelper
         logger = sp.GetRequiredService<ILogger<Program>>();
 
         Configuration = Program.Services.GetRequiredService<IConfiguration>();
-
-        Client = Program.CreateClient();
     }
 }
