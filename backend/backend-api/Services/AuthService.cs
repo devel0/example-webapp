@@ -66,11 +66,10 @@ public class AuthService : IAuthService
         var accessToken = jwtService.GenerateAccessToken(username, email, claims);
         var refreshToken = jwtService.GetValidRefreshToken(username);
 
-        var persist = false; // TODO: 
+        var persist = false;
         await signInManager.SignInWithClaimsAsync(user, persist, claims);
 
         var opts = new CookieOptions();
-        environment.SetCookieOptions(opts);
 
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
@@ -80,8 +79,11 @@ public class AuthService : IAuthService
 
         var userName = user.UserName!;
 
+        environment.SetCookieOptions(configuration, opts, setExpiresAsRefreshToken: false);
         httpContext.Response.Cookies.Append(WEB_CookieName_XAccessToken, accessToken, opts);
         httpContext.Response.Cookies.Append(WEB_CookieName_XUsername, userName, opts);
+
+        environment.SetCookieOptions(configuration, opts, setExpiresAsRefreshToken: true);
         httpContext.Response.Cookies.Append(WEB_CookieName_XRefreshToken, refreshToken, opts);
 
         return new CommonResponseDto<LoginResponseDto>(
@@ -137,7 +139,7 @@ public class AuthService : IAuthService
         if (user is not null)
         {
             if (!IsUnitTesting())
-                logger.LogInformation($"User [{user}] locked out untile {lockoutUserRequestDto.LockoutEnd}");
+                logger.LogInformation($"User [{user}] locked out until {lockoutUserRequestDto.LockoutEnd}");
             await userManager.SetLockoutEndDateAsync(user, lockoutUserRequestDto.LockoutEnd);
             return new CommonResponseBaseDto(HttpStatusCode.OK);
         }
@@ -166,7 +168,7 @@ public class AuthService : IAuthService
                     new CurrentUserResponseDto { Status = CurrentUserStatus.InvalidAuthentication });
 
             // TODO: modularize cookie management
-            var accessToken = httpContextAccessor.HttpContext.Request.Cookies[WEB_CookieName_XAccessToken];            
+            var accessToken = httpContextAccessor.HttpContext.Request.Cookies[WEB_CookieName_XAccessToken];
 
             if (accessToken is null)
                 return new CommonResponseDto<CurrentUserResponseDto>(
@@ -192,20 +194,17 @@ public class AuthService : IAuthService
 
     public async Task<ICommonResponseDto> LogoutAsync(CancellationToken cancellationToken = default)
     {
-        await signInManager.SignOutAsync();
-
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
             return new CommonResponseDto<LoginResponseDto>(
                 HttpStatusCode.BadRequest,
                 new LoginResponseDto { Status = LoginStatus.InvalidHttpContext });
 
-        var opts = new CookieOptions();
-        environment.SetCookieOptions(opts);
+        httpContext.Response.Cookies.Delete(WEB_CookieName_XAccessToken);
+        httpContext.Response.Cookies.Delete(WEB_CookieName_XUsername);
+        httpContext.Response.Cookies.Delete(WEB_CookieName_XRefreshToken);
 
-        httpContext.Response.Cookies.Append(WEB_CookieName_XAccessToken, "", opts);
-        httpContext.Response.Cookies.Append(WEB_CookieName_XUsername, "", opts);
-        httpContext.Response.Cookies.Append(WEB_CookieName_XRefreshToken, "", opts);
+        await signInManager.SignOutAsync();
 
         return new CommonResponseBaseDto(HttpStatusCode.OK);
     }

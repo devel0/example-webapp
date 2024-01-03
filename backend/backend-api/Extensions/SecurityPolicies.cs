@@ -7,9 +7,9 @@ public static partial class Extensions
     /// Add cors, in development environment, for given corsAllowedOrigins.
     /// </summary>    
     public static void SetupSecurityPolicies(this WebApplicationBuilder webApplicationBuilder,
-        string corsAllowedOrigins)
+        string? corsAllowedOrigins)
     {
-        if (webApplicationBuilder.Environment.IsDevelopment())
+        if (webApplicationBuilder.Environment.IsDevelopment() && corsAllowedOrigins is not null)
         {
             webApplicationBuilder.Services.AddCors(options =>
             {

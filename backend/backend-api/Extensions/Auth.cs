@@ -35,7 +35,9 @@ public static partial class Extensions
         };
 
         foreach (var userRole in userRoles)
+        {
             claims.Add(new Claim(ClaimTypes.Role, userRole));
+        }
 
         return claims;
     }
@@ -192,10 +194,11 @@ public static partial class Extensions
 
                                         var opts = new CookieOptions();
 
-                                        hostEnvironment.SetCookieOptions(opts);
-
+                                        hostEnvironment.SetCookieOptions(builder.Configuration, opts, setExpiresAsRefreshToken: false);
                                         context.HttpContext.Response.Cookies.Append(WEB_CookieName_XAccessToken, res.AccessToken, opts);
                                         context.HttpContext.Response.Cookies.Append(WEB_CookieName_XUsername, res.UserName, opts);
+
+                                        hostEnvironment.SetCookieOptions(builder.Configuration, opts, setExpiresAsRefreshToken: true);
                                         context.HttpContext.Response.Cookies.Append(WEB_CookieName_XRefreshToken, res.RefreshToken, opts);
 
                                         context.Principal = res.Principal;
@@ -219,28 +222,26 @@ public static partial class Extensions
         });
 
     /// <summary>
-    /// Get the cookie <see cref="SameSiteMode"/> mode configuration as <see cref="SameSiteMode.None"/> 
-    /// for development and <see cref="SameSiteMode.Lax"/> for production.
-    /// </summary>    
-    static SameSiteMode COOKIE_OPTION_SAME_SITE_MODE(IHostEnvironment environment)
-    {
-        if (environment.IsDevelopment())
-            return SameSiteMode.None;
-
-        else
-            return SameSiteMode.Lax;
-    }
-
-    /// <summary>
     /// Configure given CookieBuilder to set HttpOnly, Secure and SameSite options on created cookies.
     /// <seealso cref="COOKIE_OPTION_SECURE"/>
     /// <seealso cref="COOKIE_OPTION_HTTPONLY"/>
     /// </summary>
     public static void SetCookieOptions(this IHostEnvironment environment, CookieBuilder cookieBuilder)
     {
-        cookieBuilder.SecurePolicy = COOKIE_OPTION_SECURE ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
-        cookieBuilder.HttpOnly = COOKIE_OPTION_HTTPONLY;
-        cookieBuilder.SameSite = COOKIE_OPTION_SAME_SITE_MODE(environment);
+        if (environment.IsDevelopment())
+        {
+            cookieBuilder.SecurePolicy = CookieSecurePolicy.None;
+            cookieBuilder.HttpOnly = true;
+            cookieBuilder.SameSite = SameSiteMode.Lax;
+        }
+        else
+        {
+            cookieBuilder.SecurePolicy = CookieSecurePolicy.Always;
+            cookieBuilder.HttpOnly = true;
+            cookieBuilder.SameSite = SameSiteMode.Lax;
+        }
+
+
     }
 
     /// <summary>
@@ -248,11 +249,29 @@ public static partial class Extensions
     /// <seealso cref="COOKIE_OPTION_SECURE"/>
     /// <seealso cref="COOKIE_OPTION_HTTPONLY"/>
     /// </summary>
-    public static void SetCookieOptions(this IHostEnvironment environment, CookieOptions cookieOptions)
+    public static void SetCookieOptions(this IHostEnvironment environment, IConfiguration configuration,
+         CookieOptions cookieOptions, bool setExpiresAsRefreshToken = false)
     {
-        cookieOptions.Secure = COOKIE_OPTION_SECURE;
-        cookieOptions.HttpOnly = COOKIE_OPTION_HTTPONLY;
-        cookieOptions.SameSite = COOKIE_OPTION_SAME_SITE_MODE(environment);
+        if (environment.IsDevelopment())
+        {
+            cookieOptions.Secure = false;
+            cookieOptions.HttpOnly = true;
+            cookieOptions.SameSite = SameSiteMode.Lax;
+        }
+        else
+        {
+            cookieOptions.Secure = true;
+            cookieOptions.HttpOnly = true;
+            cookieOptions.SameSite = SameSiteMode.Lax;
+        }
+
+        if (setExpiresAsRefreshToken)
+        {
+            var cookieDuration = TimeSpan.FromSeconds(
+                configuration.GetConfigVar<int>(CONFIG_KEY_JwtSettings_RefreshTokenDurationSeconds));
+
+            cookieOptions.Expires = DateTimeOffset.Now.Add(cookieDuration);
+        }
     }
 
     /// <summary>
