@@ -16,7 +16,7 @@ public static partial class Extensions
                 options.AddPolicy(APP_DevelopmentCorsPolicyName, policy =>
                 {
                     policy
-                        .WithOrigins(corsAllowedOrigins)
+                        .WithOrigins(corsAllowedOrigins.Split(','))
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
