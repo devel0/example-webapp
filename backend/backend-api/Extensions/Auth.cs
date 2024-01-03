@@ -194,11 +194,9 @@ public static partial class Extensions
 
                                         var opts = new CookieOptions();
 
-                                        hostEnvironment.SetCookieOptions(builder.Configuration, opts, setExpiresAsRefreshToken: false);
+                                        hostEnvironment.SetCookieOptions(builder.Configuration, opts, setExpiresAsRefreshToken: true);
                                         context.HttpContext.Response.Cookies.Append(WEB_CookieName_XAccessToken, res.AccessToken, opts);
                                         context.HttpContext.Response.Cookies.Append(WEB_CookieName_XUsername, res.UserName, opts);
-
-                                        hostEnvironment.SetCookieOptions(builder.Configuration, opts, setExpiresAsRefreshToken: true);
                                         context.HttpContext.Response.Cookies.Append(WEB_CookieName_XRefreshToken, res.RefreshToken, opts);
 
                                         context.Principal = res.Principal;

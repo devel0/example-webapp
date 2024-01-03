@@ -79,11 +79,9 @@ public class AuthService : IAuthService
 
         var userName = user.UserName!;
 
-        environment.SetCookieOptions(configuration, opts, setExpiresAsRefreshToken: false);
-        httpContext.Response.Cookies.Append(WEB_CookieName_XAccessToken, accessToken, opts);
-        httpContext.Response.Cookies.Append(WEB_CookieName_XUsername, userName, opts);
-
         environment.SetCookieOptions(configuration, opts, setExpiresAsRefreshToken: true);
+        httpContext.Response.Cookies.Append(WEB_CookieName_XAccessToken, accessToken, opts);
+        httpContext.Response.Cookies.Append(WEB_CookieName_XUsername, userName, opts);        
         httpContext.Response.Cookies.Append(WEB_CookieName_XRefreshToken, refreshToken, opts);
 
         return new CommonResponseDto<LoginResponseDto>(
