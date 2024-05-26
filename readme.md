@@ -322,7 +322,7 @@ Installing root-ca certificate imply that certificates generated within that wil
 - **shell**
   - copy `~/sscerts/searchathing.com_CA.crt` to `/usr/local/share/ca-certificates`
   - issue `sudo update-ca-certificates`
-- 
+
 ## how this project was built
 
 ```sh
@@ -341,5 +341,4 @@ dotnet build
 ```
 
 - vscode (C-S-p: Generate assets)
-- bunch of configs
- 
+- [bunch of configs](https://github.com/devel0/example-webapp/commit/ffda8d6054c097bc8418ceed5286a97d52420b43)
