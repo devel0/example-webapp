@@ -130,24 +130,22 @@ server {
   #access_log /var/log/nginx/test.access.log;
   #error_log /var/log/nginx/test.error.log notice;
 
-  server_name test.searchathing.com;
+  server_name test.searchathing.com;  
 
-  rewrite /$ /app;
-
-  location /api {
+  location /api/ {
     include /etc/nginx/mime.types;
 
     proxy_set_header Host $host;
-    proxy_pass http://10.10.1.47:5000;
+    proxy_pass http://10.10.1.47:5000/;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 
-  location /app {
+  location /app/ {
     include /etc/nginx/mime.types;
 
     proxy_set_header Host $host;
-    proxy_pass http://10.10.1.47:5000/app;
+    proxy_pass http://10.10.1.47:5000/app/;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
@@ -248,33 +246,31 @@ server {
   access_log /var/log/nginx/webapp-test.access.log;
   error_log /var/log/nginx/webapp-test.error.log notice;
 
-  server_name webapp-test.searchathing.com;
+  server_name webapp-test.searchathing.com;  
 
-  rewrite /$ /app;
-
-  location /swagger {
+  location /swagger/ {
     include /etc/nginx/mime.types;
 
     proxy_set_header Host $host;
-    proxy_pass http://127.0.0.1:5000/swagger;
+    proxy_pass http://127.0.0.1:5000/swagger/;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 
-  location /api {
+  location /api/ {
     include /etc/nginx/mime.types;
 
     proxy_set_header Host $host;
-    proxy_pass http://127.0.0.1:5000;
+    proxy_pass http://127.0.0.1:5000/;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 
-  location /app {
+  location /app/ {
     include /etc/nginx/mime.types;
 
     proxy_set_header Host $host;
-    proxy_pass http://127.0.0.1:5100/app;
+    proxy_pass http://127.0.0.1:5100/app/;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
